@@ -19,6 +19,9 @@ Bluesky's UI currently renders timestamps based on the indexedAt field (i.e., wh
 
 The code here currently tries to post skoots with the old timestamps, but the Bluesky UI will not render them so. It used to, and then Paul probably patched the bug ^^
 
+### Thanks to
+
+- Boris Mann
 
 ### See also
 
