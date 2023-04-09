@@ -2,7 +2,17 @@
 
 Import your Twitter archive into a Bluesky account.
 
-**At this time, this will spam others timelines, so it is only recommended to run on new accounts.** See `Known problems` below for details.
+!
+!
+!
+
+**At this time, this will spam others timelines, so it is only recommended
+to run on new accounts with no followers.** See `Known problems` below for details.
+
+
+!
+!
+!
 
 Usage:
 
@@ -24,6 +34,7 @@ The code here currently tries to post skoots with the old timestamps, but the Bl
 ### Thanks to
 
 - Boris Mann
+- Shinya Kato
 
 ### See also
 
