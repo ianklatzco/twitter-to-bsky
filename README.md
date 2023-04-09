@@ -7,7 +7,7 @@ Usage:
 ```bash
 # Get an archive from https://twitter.com/settings/download_your_data
 # Unzip a Twitter archive so the assets/ folder is in the same directory as main.py
-export BSKY_USERAME="yourname.bsky.social"
+export BSKY_USERNAME="yourname.bsky.social"
 export PASSWORD="yourpassword"
 pip install atprototools==0.0.6
 python main.py
