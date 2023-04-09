@@ -2,6 +2,8 @@
 
 Import your Twitter archive into a Bluesky account.
 
+**At this time, this will spam others timelines, so it is only recommended to run on new accounts.** See `Known problems` below for details.
+
 Usage:
 
 ```bash

@@ -47,8 +47,22 @@ def wipe_profile():
         resp = atpt.delete_skoot(atpt.DID, rkey)
         print(resp)
         # import pdb; pdb.set_trace()
+
+def warning():
+    response = ""
+    print("\nWARNING: Unless you have very few followers,")
+    print("""\n*** this tool will SPAM THE TIMELINES of everyone who follows you when you upload your old tweets. ***""")
+    print("""\n*** this tool will SPAM THE TIMELINES of everyone who follows you when you upload your old tweets. ***""")
+    print("""\n*** this tool will SPAM THE TIMELINES of everyone who follows you when you upload your old tweets. ***\n""")
+    print("It is recommended that you do not run this tool unless your account is brand new.\n")
+    print("Please type [I UNDERSTAND] this will spam others' timelines.")
+    response = input("Type [I UNDERSTAND]: ")
+    if response != "I UNDERSTAND":
+        print("Exiting....")
+        import sys; sys.exit()
  
 def main():
+    warning()
     atpt.login(USERNAME, PASSWORD)
     # wipe_profile()
     upload_old_tweets()
