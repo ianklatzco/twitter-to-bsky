@@ -31,6 +31,10 @@ Bluesky's UI currently renders timestamps based on the indexedAt field (i.e., wh
 
 The code here currently tries to post skoots with the old timestamps, but the Bluesky UI will not render them so. It used to, and then Paul probably patched the bug ^^
 
+Does not preserve replies, so your threads will be decomposed into de-contextualized individual posts.
+
+Does not convert links in the text of tweets.
+
 ### Thanks to
 
 - Boris Mann
