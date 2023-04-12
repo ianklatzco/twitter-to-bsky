@@ -207,15 +207,18 @@ async def handle(request):
                     <th>twitter</th>
                     <th>bsky</th>
                 </tr>
-                """ + "\n".join(rows) + "</table>"
+                """ + "\n".join(rows) + "</table>" +
+                "<br> <h3> this is a work in progress! please tell me about any bugs by replying to the thread <a target='_blank' href='https://staging.bsky.app/profile/klatz.co/post/3jt6mh7imkv2z'>here!</a>"
         ,content_type="text/html")
     else:
         resp = requests.post(DISCORD_WEBHOOK_URL, json={'content':'somebody opened the link!'}, headers={'Content-Type': 'application/json'})
         # testdata = open("testdata.json", encoding='utf-8').read()
         testdata = open("phil-following.json", encoding='utf-8').read()
+
         return web.Response(text=f"""
             <html>
                 <body>
+                    <h3>website 2 follow ur twitter friends on bsky🦋</h3>
 
                     <ol>
                         <li>get the JSON export of the people you follow from 
@@ -238,10 +241,29 @@ async def handle(request):
         content_type="text/html"
         )
 
+async def handle_upload(request):
+    reader = await request.multipart()
+    field = await reader.next()
+    filename = field.filename
+    size = 0
+    f = StringIO()
+    while True:
+        chunk = await field.read_chunk()  # Read the next chunk of data
+        if not chunk:
+            break
+        size += len(chunk)
+        f.write(chunk)
+    return aiohttp.web.Response(text=f'{filename} uploaded successfully')
+
+
+
 def main():
     app = web.Application()
-    app.add_routes([web.get('/', handle),
-                    web.post('/', handle)])
+    app.add_routes([
+                    web.get('/', handle),
+                    web.post('/', handle),
+                    web.post('/upload', handle_upload)
+                    ])
     web.run_app(app)
 
 # test_get_bsky_username()
