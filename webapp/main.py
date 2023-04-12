@@ -159,6 +159,9 @@ async def handle(request):
             <html>
                 <body>
                     <br><br><br><br>
+                    <br><br><br><br>
+                    <br><br><br><br>
+                    <br><br><br><br>
                     <h3>(wip) website 2 follow ur twitter friends on bsky🦋</h3>
 
                     <ol>
@@ -166,12 +169,18 @@ async def handle(request):
                             <a href="https://unflwrs.syfaro.com/">https://unflwrs.syfaro.com/</a>
                         </li>
                         <li>unzip following.json somewhere</li>
-                        <li>upload it</li>
+                        <li>upload following.json</li>
                     </ol>
                     <form action="/upload" method="post" enctype="multipart/form-data">
                         <input type="file" name="file">
                         <input type="submit" value="get your twitter friends' bsky handles">
                     </form>
+
+                    <br><br><br><br>
+                    <br><br><br><br>
+                    <br><br><br><br>
+                    <br><br><br><br>
+                    this website does not store any of your data! you can check the <a href='https://github.com/ianklatzco/twitter-to-bsky'>source code</a> to make sure c:
 
                     <br><br><br><br>
                     
@@ -224,15 +233,22 @@ async def handle_upload(request):
     )
     rows2.append( f'''
         <tr>
-            <td> blisstweeting</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/blisstweeting.ingroup.social">🦋blisstweeting.ingroup.social</a> </td>
+            <td>lucyluwang</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/lucylw.bsky.social">🦋lucylw.bsky.social</a> </td>
         </tr>
         '''
     )
     rows2.append( f'''
         <tr>
-            <td>RobertHaisfield</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/robhaisfield.com">🦋robhaisfield.com</a> </td>
+            <td>willscott</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/wills.co.tt">🦋wills.co.tt</a> </td>
+        </tr>
+        '''
+    )
+    rows2.append( f'''
+        <tr>
+            <td> blisstweeting</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/blisstweeting.ingroup.social">🦋blisstweeting.ingroup.social</a> </td>
         </tr>
         '''
     )
@@ -278,7 +294,7 @@ async def handle_upload(request):
             """ + "\n".join(rows2) + "</table>" +
 
             '''
-            <h3>i want to be added to the guestbook when it opens</h3>
+            <h3>i want to be added to the guestbook!</h3>
             <ol>
                 <li>set your twitter bio to include 🦋yourusername.bsky.social</li>
                 <li>put your twitter handle here</li>
@@ -300,7 +316,7 @@ async def handle_upload(request):
             ''' + 
 
             "<br> <h3> this is a work in progress! please tell me about any bugs by replying to the thread <a target='_blank' href='https://staging.bsky.app/profile/klatz.co/post/3jt6mh7imkv2z'>here!</a>"
-            "<br><a href='/'>go back</a>" 
+            "<br><br><a href='/'>go back</a>" 
     ,content_type="text/html")
 
 async def handle_testsetup(request):
