@@ -16,6 +16,14 @@ ATP_HOST = "https://bsky.social"
  returns and displays them in webui so you can click them in new tabs to follow
  (bonus) hide the ones you've clicked"""
 
+class User():
+    def __init__(self):
+        self.twitter = ""
+        self.bsky = ""
+
+    def __repr__(self):
+        return str(self.twitter) + str(self.bsky)
+
 def test_get_bsky_username():
     assert get_bsky_username("bsky:@klatz.co foo bar") == "klatz.co"
     # assert get_bsky_username("bsky: @klatz.co") == "klatz.co"
@@ -26,17 +34,32 @@ def test_get_bsky_username():
     # assert get_bsky_username("🦋klatz.co") == "klatz.co"
 
 def get_bsky_username(instr) -> str:
+    # print("checking bsky username for {}".format(instr))
     # TODO look for DIDs too i guess
     # text = "bsky: foo bsky:foo"
 
-    # pattern = r"bsky:\s*[A-Za-z]"
-    pattern = r"bsky:\s*.*"
+    sumlist = []
 
+    # pattern = r"bsky:\s*[A-Za-z]"
+    pattern = r"🦋.*"
+    # pattern = r"bsky:\s*.*"
     matches = re.findall(pattern, instr)
+
+    # pattern = r"🦋.*"
+    # matches + re.findall(pattern, instr)
+
+    if matches != []:
+        print("matches: ")
+        print(matches)
+    if matches == []: return
+
     build = matches[0].replace("bsky","")
+    build = matches[0].replace("🦋","")
+    print(build)
 
     if build[0] ==":": build = build.replace(":","")
     if build[0] ==" ": build = build.replace(" ","")
+    if build[0] =="@": build = build.replace("@","")
 
     build = build.split()[0]
 
@@ -44,21 +67,26 @@ def get_bsky_username(instr) -> str:
     return build
 
 
-
-
+# -> List[users]
 def process_json(input_json=None):
     sample = '''[[{"id":"33333","name":"foouserdisplayname","username":"ian5v","created_at":"2015-01-24T20:50:17Z","description":"bsky:klatz.co","entities":{},"location":"usa","pinned_tweet_id":"33333","profile_image_url":"foo","protected":false,"url":"lol"},{"id":"3333","text":"pinned tweet text content","entities":{}}]]'''
     if input_json==None: input_json = sample
 
     eee = json.loads(input_json)
+    returnlist = []
     for person_youre_following in eee:
+
+        # 1. check the handle to see if they just registered twitterhandle.bsky.social
+        # 2. 
+
         # two items in a list, first is the bio and second is the pinned tweet
         # TODO check bio
-        bio = person_youre_following[0]
+        bio_full_json = person_youre_following[0]
         pinned = person_youre_following[1]
-        displayname = bio.get('name')
-        username = bio.get('username')
-        description = bio.get('description')
+        displayname = bio_full_json.get('name')
+        username = bio_full_json.get('username')
+        description = bio_full_json.get('description')
+
 
         if ( "bsky" in description ) :
             # print(description.split())
@@ -68,16 +96,23 @@ def process_json(input_json=None):
             pass
             # print(displayname)
 
-        bsky_username = get_bsky_username() # from bio
+        bsky_username = get_bsky_username(description) # from bio
+        if bsky_username == None: continue
 
         session = atprototools.Session(os.environ.get("BSKY_USERNAME"), os.environ.get("BSKY_PASSWORD"))
-        bsky_did = session.resolveHandle(bsky_username).json()
+        bsky_did = session.resolveHandle(bsky_username).json().get('did')
         profile_json = session.getProfile(bsky_did).json()
 
         # RESUME now i have the json containing profile content; parse it and render the bsky profile in html (just a link to the profile is fine to start)
 
+        user = User()
+        user.twitter = person_youre_following
+        user.bsky = profile_json
+        returnlist.append(user)
+
         # TODO check pinned tweet
         # import pdb; pdb.set_trace()
+    return returnlist
 
 
 
@@ -88,6 +123,7 @@ async def handle(request):
         print(data)
         twitter_username = data.get("name")
         ccc = data.get('text')
+        list_of_user_profiles_on_bsky = process_json(ccc)
         # print(ccc)
         # print(type(ccc))
         # fff = StringIO(ccc)
@@ -96,19 +132,54 @@ async def handle(request):
         # reader = csv.reader(ccc.split('\n'), delimiter=",")
         # print(type(reader))
         # import pdb; pdb.set_trace()
-        for row in reader:
-            print(row)
-        return web.Response(text=f"Data received: {data}")
+        # for row in reader:
+        #     print(row)
+
+        # generate some html
+
+        '''
+            <tr> twitter</tr>
+            <tr> bsky</tr>
+        '''
+
+        rows = []
+        for user in list_of_user_profiles_on_bsky:
+            bsky_handle = user.bsky.get('handle')
+            rows.append( f'''
+                <tr>
+                    <td>{user.twitter[0].get('username')}</td>
+                    <td> <a target="_blank" href="https://staging.bsky.app/profile/{bsky_handle}">{bsky_handle}</a> </td>
+                </tr>
+                '''
+            )
+
+
+        # Data received: {list_of_user_profiles_on_bsky}
+        return web.Response(text=f"""
+            <table>
+                <tr>
+                    <th>twitter</th>
+                    <th>bsky</th>
+                </tr>
+                """ + "\n".join(rows) + "</table>"
+        ,content_type="text/html")
     else:
-        return web.Response(text="""
+        testdata = open("testdata.json", encoding='utf-8').read()
+        return web.Response(text=f"""
             <html>
                 <body>
-                    <a href="https://unflwrs.syfaro.com/">https://unflwrs.syfaro.com/</a>
+
+                    <ol>
+                        <li>get the JSON export of the people you follow from 
+                            <a href="https://unflwrs.syfaro.com/">https://unflwrs.syfaro.com/</a>
+                        </li>
+                        <li>paste following.json into the box below</li>
+                    </ol>
                     <form method="post">
                         <label for="name">Paste the json from unflwrs:</label><br>
                         <textarea rows="5" cols="60" name="text" placeholder="">
 
-                        [[{"id":"33333","name":"foouserdisplayname","username":"ian5v","created_at":"2015-01-24T20:50:17Z","description":"bsky:klatz.co","entities":{},"location":"usa","pinned_tweet_id":"33333","profile_image_url":"foo","protected":false,"url":"lol"},{"id":"3333","text":"pinned tweet text content","entities":{}}]]
+                        {testdata}
 
                         </textarea> <br>
                         <input type="submit" value="get your twitter friends' bsky handles">
@@ -125,5 +196,6 @@ def main():
                     web.post('/', handle)])
     web.run_app(app)
 
-process_json()
-test_get_bsky_username()
+# process_json()
+# test_get_bsky_username()
+main()

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Sky with Clouds Background</title>
+    <style>
+      body {
+        background-color: #87ceeb;
+      }
+
+      .cloud {
+        width: 300px;
+        height: 200px;
+        background-color: #fff;
+        border-radius: 100px;
+        position: absolute;
+        top: 50px;
+        left: 50px;
+      }
+
+      .cloud:after {
+        content: "";
+        display: block;
+        width: 80px;
+        height: 80px;
+        background-color: #fff;
+        border-radius: 50px;
+        position: absolute;
+        top: -30px;
+        left: 30px;
+      }
+
+      .cloud:before {
+        content: "";
+        display: block;
+        width: 80px;
+        height: 80px;
+        background-color: #fff;
+        border-radius: 50px;
+        position: absolute;
+        top: -50px;
+        left: 110px;
+      }
+
+      .cloud:after,
+      .cloud:before {
+        transform: rotate(45deg);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cloud"></div>
+  </body>
+</html>
