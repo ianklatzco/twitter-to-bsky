@@ -1,4 +1,5 @@
 
+
 '''
     forgive me for this cursed code
     for i was sick and cold and lacking for bread
@@ -8,6 +9,8 @@
 '''
 
 
+from functools import reduce
+import sys
 from aiohttp import web
 import csv
 from io import StringIO,BytesIO
@@ -28,6 +31,7 @@ DISCORD_WEBHOOK_URL = "https://disc"+"ord.com/api/webhooks/109577989"+"930378868
  returns and displays them in webui so you can click them in new tabs to follow
  (bonus) hide the ones you've clicked"""
 
+
 class User():
     def __init__(self):
         self.twitter = ""
@@ -36,53 +40,60 @@ class User():
     def __repr__(self):
         return str(self.twitter) + "," + str(self.bsky)
 
+
 def test_get_bsky_username():
-    assert get_bsky_username("bsky:@klatz.co foo bar") == "klatz.co"
-    # assert get_bsky_username("bsky: @klatz.co") == "klatz.co"
-    # assert get_bsky_username("bsky: klatz.co") == "klatz.co"
-    # assert get_bsky_username("bsky:klatz.co") == "klatz.co"
-    # assert get_bsky_username("🦋 @klatz.co") == "klatz.co"
-    # assert get_bsky_username("🦋@klatz.co") == "klatz.co"
-    # assert get_bsky_username("🦋klatz.co") == "klatz.co"
+    sample_text = "Hello! This is supposed to be a twitter profile text. " + \
+        "It also mentions bsky without being a username and " + \
+        "even has a link to bsky.app on the profile. " + \
+        "The user happens to like 🦋 as well and has a link to " +\
+        "gist.github.com on their profile."
+    sample_usernames = ["heartade.bsky.social", "klatz.co"]
+    sample_tags = ["bsky:@", "bsky: @", "bsky:", "bsky: ", "bsky@", "bsky @", "bsky ",
+                   "🦋:@", "🦋: @", "🦋:", "🦋: ", "🦋@", "🦋 @", "🦋 ", "🦋"]
+    for sample_username in sample_usernames:
+        for sample_tag in sample_tags:
+            test_text = "{} {}{} {}".format(
+                sample_text, sample_tag, sample_username, sample_text)
+            print("testing: {}".format(test_text))
+            assert get_bsky_username(test_text) == sample_username
+
 
 def get_bsky_username(instr) -> str:
     # print("checking bsky username for {}".format(instr))
     # TODO look for DIDs too i guess
     # text = "bsky: foo bsky:foo"
 
-    sumlist = []
-
-    # pattern = r"bsky:\s*[A-Za-z]"
-    pattern = r"🦋.*"
-    # pattern = r"bsky:\s*.*"
+    pattern = r"🦋[\s:@]*[^\s]+|bsky[\s:@]+[^\s]+"
     matches = re.findall(pattern, instr)
-
-    # pattern = r"🦋.*"
-    # matches + re.findall(pattern, instr)
 
     if matches != []:
         print("matches: ")
         print(matches)
-    if matches == []: return
+    if matches == []:
+        return
 
-    build = matches[0].replace("bsky","")
-    build = matches[0].replace("🦋","")
-    print(build)
+    possible_handles = []
+    for match in matches:
+        # replace emoji with bsky: because it's easier to parse
+        tmpstr: str = match.replace("🦋", "bsky:")
+        # remove first occurence of bsky
+        tmpstr = tmpstr.replace("bsky", "", 1)
+        tokens = tmpstr.split()
+        tokens = reduce(lambda x, y: x+y, map(lambda x: x.split(":"), tokens))
+        tokens = reduce(lambda x, y: x+y, map(lambda x: x.split("@"), tokens))
 
-    if build[0] ==":": build = build.replace(":","")
-    if build[0] ==" ": build = build.replace(" ","")
-    if build[0] =="@": build = build.replace("@","")
+        possible_handles += filter(lambda x: x.count(".")
+                                   >= 1 and x[-1] != ".", tokens)
 
-    build = build.split()[0]
-
-    print(build)
-    return build
+    print(possible_handles)
+    return possible_handles[0]
 
 
 # -> List[users]
 def process_json(input_json=None):
     sample = '''[[{"id":"33333","name":"foouserdisplayname","username":"ian5v","created_at":"2015-01-24T20:50:17Z","description":"bsky:klatz.co","entities":{},"location":"usa","pinned_tweet_id":"33333","profile_image_url":"foo","protected":false,"url":"lol"},{"id":"3333","text":"pinned tweet text content","entities":{}}]]'''
-    if input_json==None: input_json = sample
+    if input_json == None:
+        input_json = sample
 
     eee = json.loads(input_json)
     returnlist = []
@@ -95,7 +106,7 @@ def process_json(input_json=None):
         # print(json.dumps(person_youre_following[0]))
 
         # 1. check the handle to see if they just registered twitterhandle.bsky.social
-        # 2. 
+        # 2.
 
         bio_full_json = person_youre_following[0]
         pinned = person_youre_following[1]
@@ -162,8 +173,6 @@ def process_json(input_json=None):
     return returnlist
 
 
-
-
 async def handle(request):
     if request.method == 'GET':
         resp = requests.post(DISCORD_WEBHOOK_URL, json={'content':'somebody opened the link!'}, headers={'Content-Type': 'application/json'})
@@ -205,8 +214,9 @@ async def handle(request):
                 </body>
             </html>
         """,
-        content_type="text/html"
-        )
+                            content_type="text/html"
+                            )
+
 
 async def handle_upload(request):
     reader = await request.multipart()
@@ -434,4 +444,10 @@ def main():
     web.run_app(app)
 
 # test_get_bsky_username()
-main()
+if __name__ == "__main__":
+    args = sys.argv[1:]
+    if len(args) > 0:
+        if args[0] == "--test-get-bsky-username":
+            test_get_bsky_username()
+    else:
+        main()
