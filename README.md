@@ -39,6 +39,7 @@ Does not convert links in the text of tweets.
 
 - Boris Mann
 - Shinya Kato
+- [Heartade](https://github.com/Heartade)
 
 ### See also
 
