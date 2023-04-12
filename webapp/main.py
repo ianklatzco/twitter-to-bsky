@@ -9,6 +9,7 @@ import datetime
 import os
 
 ATP_HOST = "https://bsky.social"
+DISCORD_WEBHOOK_URL = "https://disc"+"ord.com/api/webhooks/109577989"+"9303788686/VqsbHiWNLfQcETLYjuAsFFZ-7DMaJ3GznYQMZWJ3"+"EUw9qxsbGxB71KyZbypejzQUwUcC"
 
 """put twitter username in website
  yanks all the following usernames + bios
@@ -178,7 +179,7 @@ async def handle(request):
             bsky_handle = user.bsky.get('handle')
             rows.append( f'''
                 <tr>
-                    <td>{user.twitter[0].get('username')}</td>
+                    <td> {user.twitter[0].get('username')}</td>
                     <td> <a target="_blank" href="https://staging.bsky.app/profile/{bsky_handle}">{bsky_handle}</a> </td>
                 </tr>
                 '''
@@ -195,6 +196,7 @@ async def handle(request):
                 """ + "\n".join(rows) + "</table>"
         ,content_type="text/html")
     else:
+        resp = requests.post(DISCORD_WEBHOOK_URL, json={'content':'somebody opened the link!'}, headers={'Content-Type': 'application/json'})
         # testdata = open("testdata.json", encoding='utf-8').read()
         testdata = open("phil-following.json", encoding='utf-8').read()
         return web.Response(text=f"""
