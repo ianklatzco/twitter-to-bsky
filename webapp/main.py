@@ -180,10 +180,24 @@ async def handle(request):
             rows.append( f'''
                 <tr>
                     <td> {user.twitter[0].get('username')}</td>
-                    <td> <a target="_blank" href="https://staging.bsky.app/profile/{bsky_handle}">{bsky_handle}</a> </td>
+                    <td> <a target="_blank" href="https://staging.bsky.app/profile/{bsky_handle}">🦋{bsky_handle}</a> </td>
                 </tr>
                 '''
             )
+        rows.append( f'''
+            <tr>
+                <td>arcalinea</td>
+                <td> <a target="_blank" href="https://staging.bsky.app/profile/jay.bsky.social">🦋jay.bsky.social</a> </td>
+            </tr>
+            '''
+        )
+        rows.append( f'''
+            <tr>
+                <td> ian5v</td>
+                <td> <a target="_blank" href="https://staging.bsky.app/profile/klatz.co">🦋klatz.co</a> </td>
+            </tr>
+            '''
+        )
 
 
         # Data received: {list_of_user_profiles_on_bsky}
