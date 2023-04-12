@@ -1,3 +1,13 @@
+
+'''
+    forgive me for this cursed code
+    for i was sick and cold and lacking for bread
+    i promise i'll refactor things nicely
+    if only you might send me a pr and help me tidy?
+    💙
+'''
+
+
 from aiohttp import web
 import csv
 from io import StringIO,BytesIO
