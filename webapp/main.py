@@ -267,7 +267,8 @@ def main():
 # test_get_bsky_username()
 if __name__ == "__main__":
     args = sys.argv[1:]
-    if args[0] == "--test":
-        test_get_bsky_username()
+    if len(args) > 0:
+        if args[0] == "--test-get-bsky-username":
+            test_get_bsky_username()
     else:
         main()
