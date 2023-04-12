@@ -178,23 +178,6 @@ async def handle(request):
                     <!--
                     <h3>i want 2 test that my twitter bio is set up so my friends can find me</h3>
                     -->
-                    <h3>i want to be added to the guestbook when it opens</h3>
-                    <ol>
-                        <li>set your twitter bio to include 🦋yourusername.bsky.social</li>
-                        <li>put your twitter handle here</li>
-                    </ol>
-                    <form action="/testsetup" method="post">
-                        <!--
-                        <label for="checkbox-id">i want to be added to the guestbook</label>
-                        <input type="checkbox" id="checkbox-id" value="checkbox_value">
-                        -->
-                        <input type="text" name="twitterhandle" placeholder="your twitter" >
-                        <input type="text" name="blueskyhandle" placeholder="your bluesky" >
-                        <input type="submit" value="add me to the guestbook (so people can find me from this website)">
-                        <!--
-                        <input type="submit" value="check if this dinky lil' website can read ur twitter">
-                        -->
-                    </form> 
 
                 </body>
             </html>
@@ -231,17 +214,46 @@ async def handle_upload(request):
             </tr>
             '''
         )
-    rows.append( f'''
-        <tr>
-            <td>arcalinea</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/jay.bsky.social">🦋jay.bsky.social</a> </td>
-        </tr>
-        '''
-    )
-    rows.append( f'''
+    rows2 = []
+    rows2.append( f'''
         <tr>
             <td> ian5v</td>
             <td> <a target="_blank" href="https://staging.bsky.app/profile/klatz.co">🦋klatz.co</a> </td>
+        </tr>
+        '''
+    )
+    rows2.append( f'''
+        <tr>
+            <td> blisstweeting</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/blisstweeting.ingroup.social">🦋blisstweeting.ingroup.social</a> </td>
+        </tr>
+        '''
+    )
+    rows2.append( f'''
+        <tr>
+            <td>RobertHaisfield</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/robhaisfield.com">🦋robhaisfield.com</a> </td>
+        </tr>
+        '''
+    )
+    rows2.append( f'''
+        <tr>
+            <td>RobertHaisfield</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/robhaisfield.com">🦋robhaisfield.com</a> </td>
+        </tr>
+        '''
+    )
+    rows2.append( f'''
+        <tr>
+            <td>mr_ligi</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/ligi.de">🦋ligi.de</a> </td>
+        </tr>
+        '''
+    )
+    rows2.append( f'''
+        <tr>
+            <td>stephengraves</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/stephengraves.bsky.social">🦋stephengraves.bsky.social</a> </td>
         </tr>
         '''
     )
@@ -249,13 +261,46 @@ async def handle_upload(request):
 
     # Data received: {list_of_user_profiles_on_bsky}
     return web.Response(text=f"""
+    <h4> your friends! (there might not be any.... sorry.....) </h4>
         <table>
             <tr>
                 <th>twitter</th>
                 <th>bsky</th>
             </tr>
-            """ + "\n".join(rows) + "</table>" +
+            """ + "\n".join(rows) + "</table><hr>" +
+            """<br> 
+            <h4>guestbook!</h4>
+            <table>
+            <tr>
+                <th>twitter</th>
+                <th>bsky</th>
+            </tr>
+            """ + "\n".join(rows2) + "</table>" +
+
+            '''
+            <h3>i want to be added to the guestbook when it opens</h3>
+            <ol>
+                <li>set your twitter bio to include 🦋yourusername.bsky.social</li>
+                <li>put your twitter handle here</li>
+                <li>click the button</li>
+                <li>ian manually adds you when he wakes up</li>
+            </ol>
+            <form action="/testsetup" method="post">
+                <!--
+                <label for="checkbox-id">i want to be added to the guestbook</label>
+                <input type="checkbox" id="checkbox-id" value="checkbox_value">
+                -->
+                <input type="text" name="twitterhandle" placeholder="your twitter" >
+                <input type="text" name="blueskyhandle" placeholder="your bluesky" >
+                <input type="submit" value="add me to the guestbook (so people can find me from this website)">
+                <!--
+                <input type="submit" value="check if this dinky lil' website can read ur twitter">
+                -->
+            </form> 
+            ''' + 
+
             "<br> <h3> this is a work in progress! please tell me about any bugs by replying to the thread <a target='_blank' href='https://staging.bsky.app/profile/klatz.co/post/3jt6mh7imkv2z'>here!</a>"
+            "<br><a href='/'>go back</a>" 
     ,content_type="text/html")
 
 async def handle_testsetup(request):
@@ -265,10 +310,10 @@ async def handle_testsetup(request):
         uu.twitter = data.get('twitterhandle')
         uu.bsky = data.get('blueskyhandle')
         for c in uu.twitter:
-            if c not in (ascii_letters + digits):
+            if c not in (ascii_letters + digits + "." + "@"):
                 return web.Response(text="ascii letters + numbers only pls")
         for c in uu.bsky:
-            if c not in (ascii_letters + digits):
+            if c not in (ascii_letters + digits + "." + "@"):
                 return web.Response(text="ascii letters + numbers only pls")
         # username = data.get('twitterhandle').replace("@","")
         # do a selenium
@@ -297,6 +342,20 @@ async def handle_testsetup(request):
             <tr>
                 <td> ian5v</td>
                 <td> <a target="_blank" href="https://staging.bsky.app/profile/klatz.co">🦋klatz.co</a> </td>
+            </tr>
+            '''
+        )
+        rows.append( f'''
+            <tr>
+                <td>mr_ligi</td>
+                <td> <a target="_blank" href="https://staging.bsky.app/profile/ligi.de">🦋ligi.de</a> </td>
+            </tr>
+            '''
+        )
+        rows.append( f'''
+            <tr>
+                <td>stephengraves</td>
+                <td> <a target="_blank" href="https://staging.bsky.app/profile/stephengraves.bsky.social">🦋stephengraves.bsky.social</a> </td>
             </tr>
             '''
         )
