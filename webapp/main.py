@@ -1,6 +1,6 @@
 from aiohttp import web
 import csv
-from io import StringIO
+from io import StringIO,BytesIO
 import json
 import re
 import atprototools
@@ -150,67 +150,7 @@ def process_json(input_json=None):
 
 
 async def handle(request):
-    if request.method == 'POST':
-        data = await request.post()
-        # print(data)
-        twitter_username = data.get("name")
-        ccc = data.get('text')
-        list_of_user_profiles_on_bsky = process_json(ccc)
-        # print(ccc)
-        # print(type(ccc))
-        # fff = StringIO(ccc)
-        # print(fff)
-        # print(type(fff))
-        # reader = csv.reader(ccc.split('\n'), delimiter=",")
-        # print(type(reader))
-        # import pdb; pdb.set_trace()
-        # for row in reader:
-        #     print(row)
-
-        # generate some html
-
-        '''
-            <tr> twitter</tr>
-            <tr> bsky</tr>
-        '''
-
-        rows = []
-        for user in list_of_user_profiles_on_bsky:
-            bsky_handle = user.bsky.get('handle')
-            rows.append( f'''
-                <tr>
-                    <td> {user.twitter[0].get('username')}</td>
-                    <td> <a target="_blank" href="https://staging.bsky.app/profile/{bsky_handle}">🦋{bsky_handle}</a> </td>
-                </tr>
-                '''
-            )
-        rows.append( f'''
-            <tr>
-                <td>arcalinea</td>
-                <td> <a target="_blank" href="https://staging.bsky.app/profile/jay.bsky.social">🦋jay.bsky.social</a> </td>
-            </tr>
-            '''
-        )
-        rows.append( f'''
-            <tr>
-                <td> ian5v</td>
-                <td> <a target="_blank" href="https://staging.bsky.app/profile/klatz.co">🦋klatz.co</a> </td>
-            </tr>
-            '''
-        )
-
-
-        # Data received: {list_of_user_profiles_on_bsky}
-        return web.Response(text=f"""
-            <table>
-                <tr>
-                    <th>twitter</th>
-                    <th>bsky</th>
-                </tr>
-                """ + "\n".join(rows) + "</table>" +
-                "<br> <h3> this is a work in progress! please tell me about any bugs by replying to the thread <a target='_blank' href='https://staging.bsky.app/profile/klatz.co/post/3jt6mh7imkv2z'>here!</a>"
-        ,content_type="text/html")
-    else:
+    if request.method == 'GET':
         resp = requests.post(DISCORD_WEBHOOK_URL, json={'content':'somebody opened the link!'}, headers={'Content-Type': 'application/json'})
         # testdata = open("testdata.json", encoding='utf-8').read()
         testdata = open("phil-following.json", encoding='utf-8').read()
@@ -218,14 +158,16 @@ async def handle(request):
         return web.Response(text=f"""
             <html>
                 <body>
-                    <h3>website 2 follow ur twitter friends on bsky🦋</h3>
+                    <h3>(wip) website 2 follow ur twitter friends on bsky🦋</h3>
 
                     <ol>
                         <li>get the JSON export of the people you follow from 
                             <a href="https://unflwrs.syfaro.com/">https://unflwrs.syfaro.com/</a>
                         </li>
-                        <li>paste following.json into the box below</li>
+                        <li>unzip following.json somewhere</li>
+                        <li>upload it</li>
                     </ol>
+                    <!--
                     <form method="post">
                         <label for="name">Paste the json from unflwrs:</label><br>
                         <textarea rows="5" cols="60" name="text" placeholder="">
@@ -235,6 +177,11 @@ async def handle(request):
                         </textarea> <br>
                         <input type="submit" value="get your twitter friends' bsky handles">
                     </form> 
+                    -->
+                    <form action="/upload" method="post" enctype="multipart/form-data">
+                        <input type="file" name="file">
+                        <input type="submit" value="get your twitter friends' bsky handles">
+                    </form>
                 </body>
             </html>
         """,
@@ -246,14 +193,56 @@ async def handle_upload(request):
     field = await reader.next()
     filename = field.filename
     size = 0
-    f = StringIO()
+    f = BytesIO()
     while True:
         chunk = await field.read_chunk()  # Read the next chunk of data
         if not chunk:
             break
         size += len(chunk)
         f.write(chunk)
-    return aiohttp.web.Response(text=f'{filename} uploaded successfully')
+    f.seek(0)
+    ccc = f.read()
+    f.close()
+    ccc = ccc.decode('utf8')
+    list_of_user_profiles_on_bsky = process_json(ccc)
+    # return web.Response(text=f'{filename} uploaded successfully')
+
+    rows = []
+    for user in list_of_user_profiles_on_bsky:
+        bsky_handle = user.bsky.get('handle')
+        rows.append( f'''
+            <tr>
+                <td> {user.twitter[0].get('username')}</td>
+                <td> <a target="_blank" href="https://staging.bsky.app/profile/{bsky_handle}">🦋{bsky_handle}</a> </td>
+            </tr>
+            '''
+        )
+    rows.append( f'''
+        <tr>
+            <td>arcalinea</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/jay.bsky.social">🦋jay.bsky.social</a> </td>
+        </tr>
+        '''
+    )
+    rows.append( f'''
+        <tr>
+            <td> ian5v</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/klatz.co">🦋klatz.co</a> </td>
+        </tr>
+        '''
+    )
+
+
+    # Data received: {list_of_user_profiles_on_bsky}
+    return web.Response(text=f"""
+        <table>
+            <tr>
+                <th>twitter</th>
+                <th>bsky</th>
+            </tr>
+            """ + "\n".join(rows) + "</table>" +
+            "<br> <h3> this is a work in progress! please tell me about any bugs by replying to the thread <a target='_blank' href='https://staging.bsky.app/profile/klatz.co/post/3jt6mh7imkv2z'>here!</a>"
+    ,content_type="text/html")
 
 
 
