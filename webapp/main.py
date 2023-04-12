@@ -118,9 +118,13 @@ def process_json(input_json=None):
         # TODO
         # 2+ links in desc
         if len(desc_urls) >= 2:
-            # bsky_username = entities.get('description').get('urls')[0].get('expanded_url')
-            pass
-            # bfly_index = description.index("🦋")
+            print(username) # twitter username
+            bfly_index = description.index("🦋") + 1
+            entities = entities.get('description').get('urls')
+            for ent in entities:
+                start = ent.get('start')
+                if start == bfly_index:
+                    bsky_username = ent.get('display_url')
             # bfly_index + 1 or + 2 where the url/handle starts
 
         if bsky_username == None: continue
@@ -226,6 +230,13 @@ async def handle_upload(request):
     rows2 = []
     rows2.append( f'''
         <tr>
+            <td> coderobe</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/codero.be">🦋codero.be</a> </td>
+        </tr>
+        '''
+    )
+    rows2.append( f'''
+        <tr>
             <td> ian5v</td>
             <td> <a target="_blank" href="https://staging.bsky.app/profile/klatz.co">🦋klatz.co</a> </td>
         </tr>
@@ -242,6 +253,13 @@ async def handle_upload(request):
         <tr>
             <td>willscott</td>
             <td> <a target="_blank" href="https://staging.bsky.app/profile/wills.co.tt">🦋wills.co.tt</a> </td>
+        </tr>
+        '''
+    )
+    rows2.append( f'''
+        <tr>
+            <td> s3krit</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/punk.place">🦋punk.place</a> </td>
         </tr>
         '''
     )
