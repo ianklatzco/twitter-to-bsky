@@ -9,6 +9,7 @@ import atprototools
 import requests
 import datetime
 import os
+from string import ascii_letters, digits
 
 ATP_HOST = "https://bsky.social"
 DISCORD_WEBHOOK_URL = "https://disc"+"ord.com/api/webhooks/109577989"+"9303788686/VqsbHiWNLfQcETLYjuAsFFZ-7DMaJ3GznYQMZWJ3"+"EUw9qxsbGxB71KyZbypejzQUwUcC"
@@ -26,7 +27,7 @@ class User():
         self.bsky = ""
 
     def __repr__(self):
-        return str(self.twitter) + str(self.bsky)
+        return str(self.twitter) + "," + str(self.bsky)
 
 
 def test_get_bsky_username():
@@ -161,11 +162,11 @@ async def handle(request):
     if request.method == 'GET':
         resp = requests.post(DISCORD_WEBHOOK_URL, json={'content':'somebody opened the link!'}, headers={'Content-Type': 'application/json'})
         # testdata = open("testdata.json", encoding='utf-8').read()
-        testdata = open("phil-following.json", encoding='utf-8').read()
 
         return web.Response(text=f"""
             <html>
                 <body>
+                    <br><br><br><br>
                     <h3>(wip) website 2 follow ur twitter friends on bsky🦋</h3>
 
                     <ol>
@@ -175,21 +176,34 @@ async def handle(request):
                         <li>unzip following.json somewhere</li>
                         <li>upload it</li>
                     </ol>
-                    <!--
-                    <form method="post">
-                        <label for="name">Paste the json from unflwrs:</label><br>
-                        <textarea rows="5" cols="60" name="text" placeholder="">
-
-                        {testdata}
-
-                        </textarea> <br>
-                        <input type="submit" value="get your twitter friends' bsky handles">
-                    </form> 
-                    -->
                     <form action="/upload" method="post" enctype="multipart/form-data">
                         <input type="file" name="file">
                         <input type="submit" value="get your twitter friends' bsky handles">
                     </form>
+
+                    <br><br><br><br>
+                    
+                    <!--
+                    <h3>i want 2 test that my twitter bio is set up so my friends can find me</h3>
+                    -->
+                    <h3>i want to be added to the guestbook when it opens</h3>
+                    <ol>
+                        <li>set your twitter bio to include 🦋yourusername.bsky.social</li>
+                        <li>put your twitter handle here</li>
+                    </ol>
+                    <form action="/testsetup" method="post">
+                        <!--
+                        <label for="checkbox-id">i want to be added to the guestbook</label>
+                        <input type="checkbox" id="checkbox-id" value="checkbox_value">
+                        -->
+                        <input type="text" name="twitterhandle" placeholder="your twitter" >
+                        <input type="text" name="blueskyhandle" placeholder="your bluesky" >
+                        <input type="submit" value="add me to the guestbook (so people can find me from this website)">
+                        <!--
+                        <input type="submit" value="check if this dinky lil' website can read ur twitter">
+                        -->
+                    </form> 
+
                 </body>
             </html>
         """,
@@ -253,14 +267,75 @@ async def handle_upload(request):
             "<br> <h3> this is a work in progress! please tell me about any bugs by replying to the thread <a target='_blank' href='https://staging.bsky.app/profile/klatz.co/post/3jt6mh7imkv2z'>here!</a>"
     ,content_type="text/html")
 
+async def handle_testsetup(request):
+    if request.method == 'POST':
+        data = await request.post()
+        uu = User()
+        uu.twitter = data.get('twitterhandle')
+        uu.bsky = data.get('blueskyhandle')
+        for c in uu.twitter:
+            if c not in (ascii_letters + digits):
+                return web.Response(text="ascii letters + numbers only pls")
+        for c in uu.bsky:
+            if c not in (ascii_letters + digits):
+                return web.Response(text="ascii letters + numbers only pls")
+        # username = data.get('twitterhandle').replace("@","")
+        # do a selenium
+        resp = requests.post(DISCORD_WEBHOOK_URL, json={'content':uu.twitter + ',' + uu.bsky}, headers={'Content-Type': 'application/json'})
 
+
+        rows = []
+        list_of_user_profiles_on_bsky = [uu]
+        for user in list_of_user_profiles_on_bsky:
+            bsky_handle = user.bsky
+            rows.append( f'''
+                <tr>
+                    <td> {user.twitter}</td>
+                    <td> <a target="_blank" href="https://staging.bsky.app/profile/{bsky_handle}">🦋{bsky_handle}</a> </td>
+                </tr>
+                '''
+            )
+        rows.append( f'''
+            <tr>
+                <td>arcalinea</td>
+                <td> <a target="_blank" href="https://staging.bsky.app/profile/jay.bsky.social">🦋jay.bsky.social</a> </td>
+            </tr>
+            '''
+        )
+        rows.append( f'''
+            <tr>
+                <td> ian5v</td>
+                <td> <a target="_blank" href="https://staging.bsky.app/profile/klatz.co">🦋klatz.co</a> </td>
+            </tr>
+            '''
+        )
+
+
+        # Data received: {list_of_user_profiles_on_bsky}
+        return web.Response(text=f"""
+            <h3>guestbook</h3>
+            <table>
+                <tr>
+                    <th>twitter</th>
+                    <th>bsky</th>
+                </tr>
+                """ + "\n".join(rows) + "</table>" +
+                "<a href='/'>go back</a>"
+
+        ,content_type="text/html")
+
+        return web.Response(text=f"""
+        yay! <a href="/">go back</a>
+        """
+        ,content_type="text/html")
 
 def main():
     app = web.Application()
     app.add_routes([
                     web.get('/', handle),
                     web.post('/', handle),
-                    web.post('/upload', handle_upload)
+                    web.post('/upload', handle_upload),
+                    web.post('/testsetup', handle_testsetup)
                     ])
     web.run_app(app)
 
