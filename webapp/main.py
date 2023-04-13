@@ -88,6 +88,10 @@ guestbook: List[User] = [
          BskyProfile('stephengraves.bsky.social')),
     User(TwitterProfile('H_H_H_H_H_H_H_7', '𝙝⁷ | 하세 🏳️‍⚧️'),
          BskyProfile('heartade.bsky.social')),
+    User(TwitterProfile('markusmoetz', 'makke'),
+         BskyProfile('markus.bsky.social')),
+    User(TwitterProfile('connerdelights', 'Andrew Conner'),
+         BskyProfile('andrewconner.com')),
 ]
 
 
