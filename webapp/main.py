@@ -366,17 +366,17 @@ async def handle_testsetup(request):
             TwitterProfile(twitter_handle, ""),
             BskyProfile(bsky_handle)
         )
-
+        
         for c in uu.twitter.username:
-            if c not in (ascii_letters + digits + "." + "@"):
-                return web.Response(text="ascii letters + numbers only pls")
+            if c not in (ascii_letters + digits + "_-.@"):
+                return web.Response(text="only ascii alphabets, digits, _, -, ., and @ are allowed.")
         for c in uu.bsky.username:
-            if c not in (ascii_letters + digits + "." + "@"):
-                return web.Response(text="ascii letters + numbers only pls")
+            if c not in (ascii_letters + digits + "_-.@"):
+                return web.Response(text="only ascii alphabets, digits, _, -, ., and @ are allowed.")
         # username = data.get('twitterhandle').replace("@","")
         # do a selenium
         resp = requests.post(DISCORD_WEBHOOK_URL, json={
-                             'content': uu.twitter + ',' + uu.bsky}, headers={'Content-Type': 'application/json'})
+                             'content': uu.twitter.username + ',' + uu.bsky.username}, headers={'Content-Type': 'application/json'})
 
         # do we store this somewhere
         guestbook = [uu] + guestbook
