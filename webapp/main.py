@@ -13,7 +13,7 @@ from functools import reduce
 import sys
 from aiohttp import web
 import csv
-from io import StringIO,BytesIO
+from io import StringIO, BytesIO
 import json
 import re
 import atprototools
@@ -21,9 +21,11 @@ import requests
 import datetime
 import os
 from string import ascii_letters, digits
+from typing import List
 
 ATP_HOST = "https://bsky.social"
-DISCORD_WEBHOOK_URL = "https://disc"+"ord.com/api/webhooks/109577989"+"9303788686/VqsbHiWNLfQcETLYjuAsFFZ-7DMaJ3GznYQMZWJ3"+"EUw9qxsbGxB71KyZbypejzQUwUcC"
+DISCORD_WEBHOOK_URL = "https://disc"+"ord.com/api/webhooks/109577989" + \
+    "9303788686/VqsbHiWNLfQcETLYjuAsFFZ-7DMaJ3GznYQMZWJ3"+"EUw9qxsbGxB71KyZbypejzQUwUcC"
 
 """put twitter username in website
  yanks all the following usernames + bios
@@ -31,14 +33,60 @@ DISCORD_WEBHOOK_URL = "https://disc"+"ord.com/api/webhooks/109577989"+"930378868
  returns and displays them in webui so you can click them in new tabs to follow
  (bonus) hide the ones you've clicked"""
 
+# do we need descriptions here?
+# we don't need to store the REST ID if we're not trying to keep a mapping
+
+
+class TwitterProfile():
+    def __init__(self, username: str, displayname: str):
+        self.username: str = username
+        self.displayname: str = displayname
+
+    def __repr__(self) -> str:
+        return str(self.username) + "," + str(self.displayname)
+
+# will put more stuff later??
+
+
+class BskyProfile():
+    def __init__(self, handle: str):
+        self.username: str = handle
+
+    def __repr__(self) -> str:
+        return str(self.username)
+
 
 class User():
-    def __init__(self):
-        self.twitter = ""
-        self.bsky = ""
+    def __init__(self, twitter: TwitterProfile, bsky: BskyProfile):
+        self.twitter = twitter
+        self.bsky = bsky
 
     def __repr__(self):
         return str(self.twitter) + "," + str(self.bsky)
+
+
+guestbook: List[User] = [
+    User(TwitterProfile('arcalinea', 'arcalinea'),
+         BskyProfile('jay.bsky.social')),
+    User(TwitterProfile('coderobe', 'coderobe'),
+         BskyProfile('codero.be')),
+    User(TwitterProfile('ian5v', 'ian5v'),
+         BskyProfile('klatz.co')),
+    User(TwitterProfile('lucyluwang', 'lucyluwang'),
+         BskyProfile('lucylw.bsky.social')),
+    User(TwitterProfile('willscott', 'willscott'),
+         BskyProfile('wills.co.tt')),
+    User(TwitterProfile('s3krit', 's3krit'),
+         BskyProfile('punk.place')),
+    User(TwitterProfile('blisstweeting', 'blisstweeting'),
+         BskyProfile('blisstweeting.ingroup.social')),
+    User(TwitterProfile('RobertHaisfield', 'RobertHaisfield'),
+         BskyProfile('robhaisfield.com')),
+    User(TwitterProfile('mr_ligi', 'mr_ligi'),
+         BskyProfile('ligi.de')),
+    User(TwitterProfile('stephengraves', 'stephengraves'),
+         BskyProfile('stephengraves.bsky.social')),
+]
 
 
 def test_get_bsky_username():
@@ -89,20 +137,20 @@ def get_bsky_username(instr) -> str:
     return possible_handles[0]
 
 
-# -> List[users]
-def process_json(input_json=None):
+# -> List[User]
+def process_json(input_json: str | None = None) -> List[User]:
     sample = '''[[{"id":"33333","name":"foouserdisplayname","username":"ian5v","created_at":"2015-01-24T20:50:17Z","description":"bsky:klatz.co","entities":{},"location":"usa","pinned_tweet_id":"33333","profile_image_url":"foo","protected":false,"url":"lol"},{"id":"3333","text":"pinned tweet text content","entities":{}}]]'''
     if input_json == None:
         input_json = sample
 
     eee = json.loads(input_json)
-    returnlist = []
+    returnlist: List[User] = []
     for person_youre_following in eee:
         bsky_username = None
         # if person_youre_following[0].get("username") != "ian5v":
         #     continue
         # import sys; sys.exit()
-    
+
         # print(json.dumps(person_youre_following[0]))
 
         # 1. check the handle to see if they just registered twitterhandle.bsky.social
@@ -116,11 +164,15 @@ def process_json(input_json=None):
         description = bio_full_json.get('description')
         entities = bio_full_json.get("entities")
 
-        if not description: continue 
-        if not entities: continue
-        if not entities.get('description'): continue
+        if not description:
+            continue
+        if not entities:
+            continue
+        if not entities.get('description'):
+            continue
 
-        if "🦋" not in description: continue
+        if "🦋" not in description:
+            continue
 
         print(username)
 
@@ -129,45 +181,50 @@ def process_json(input_json=None):
         # entities -> url -> urls
 
         desc_urls = entities.get('description').get('urls')
-        if not desc_urls: continue 
+        if not desc_urls or len(desc_urls) == 0:
+            continue
 
-    
         # only one link in desc
-        if len(desc_urls) == 1:
-            bsky_username = entities.get('description').get('urls')[0].get('expanded_url')
+        elif len(desc_urls) == 1:
+            bsky_username = desc_urls[0].get('expanded_url')
 
-        # TODO
         # 2+ links in desc
-        if len(desc_urls) >= 2:
-            print(username) # twitter username
-            bfly_index = description.index("🦋") + 1
-            entities = entities.get('description').get('urls')
-            for ent in entities:
-                start = ent.get('start')
-                if start == bfly_index:
-                    bsky_username = ent.get('display_url')
-            # bfly_index + 1 or + 2 where the url/handle starts
+        elif len(desc_urls) >= 2:
+            print(username)  # twitter username
+            bfly_index = description.index("🦋")
+            for url_entity in desc_urls:
+                start = url_entity.get('start')
+                # bfly_index + 1 or + 2 where the url/handle starts
+                if start in range(bfly_index + 1, bfly_index + 3):
+                    bsky_username = url_entity.get('display_url')
 
-        if bsky_username == None: continue
+        if bsky_username == None:
+            continue
 
-
-        bsky_username = bsky_username.replace("http://",'').replace("https://","")
+        bsky_username = bsky_username.replace(
+            "http://", "").replace("https://", "")
         print(bsky_username)
 
         # bsky_username = get_bsky_username(description) # from bio
 
         print('got here')
-        session = atprototools.Session(os.environ.get("BSKY_USERNAME"), os.environ.get("BSKY_PASSWORD"))
-        bsky_did = session.resolveHandle(bsky_username).json().get('did')
-        profile_json = session.getProfile(bsky_did).json()
+        # TODO I get 'atprototools' has no attribute 'Session' error. Perhaps it's a new feature and not yet live on PIP
+        # session = atprototools.Session(os.environ.get(
+        #     "BSKY_USERNAME"), os.environ.get("BSKY_PASSWORD"))
+        # bsky_did = session.resolveHandle(bsky_username).json().get('did')
+        # profile_json = session.getProfile(bsky_did).json()
 
         # RESUME now i have the json containing profile content; parse it and render the bsky profile in html (just a link to the profile is fine to start)
 
-        user = User()
-        user.twitter = person_youre_following
-        user.bsky = profile_json
-        returnlist.append(user)
-
+        returnlist.append(
+            User(
+                TwitterProfile(
+                    username, displayname
+                ), BskyProfile(
+                    bsky_username
+                )
+            )
+        )
         # TODO check pinned tweet
         # import pdb; pdb.set_trace()
     return returnlist
@@ -175,7 +232,8 @@ def process_json(input_json=None):
 
 async def handle(request):
     if request.method == 'GET':
-        resp = requests.post(DISCORD_WEBHOOK_URL, json={'content':'somebody opened the link!'}, headers={'Content-Type': 'application/json'})
+        resp = requests.post(DISCORD_WEBHOOK_URL, json={
+                             'content': 'somebody opened the link!'}, headers={'Content-Type': 'application/json'})
         # testdata = open("testdata.json", encoding='utf-8').read()
 
         return web.Response(text=f"""
@@ -218,7 +276,30 @@ async def handle(request):
                             )
 
 
+def generate_rows_of_users(list_of_user_profiles_on_bsky: List[User]) -> str:
+    return "\n".join(
+        map(lambda user: f'''
+        <tr>
+            <td> <a target="_blank" href="https://twitter.com/{user.twitter.username}">{user.twitter.displayname}</a>({user.twitter.username})</td>
+            <td> <a target="_blank" href="https://staging.bsky.app/profile/{user.bsky.username}">🦋{user.bsky.username}</a></td>
+        </tr>
+    ''', list_of_user_profiles_on_bsky)
+    )
+
+def generate_table_of_users(list_of_user_profiles_on_bsky: List[User]) -> str:
+    return f'''
+    <table>
+        <tr>
+            <th>twitter</th>
+            <th>bsky</th>
+        </tr>
+        {generate_rows_of_users(list_of_user_profiles_on_bsky)}
+    </table>
+    '''
+
+
 async def handle_upload(request):
+    global guestbook
     reader = await request.multipart()
     field = await reader.next()
     filename = field.filename
@@ -237,211 +318,83 @@ async def handle_upload(request):
     list_of_user_profiles_on_bsky = process_json(ccc)
     # return web.Response(text=f'{filename} uploaded successfully')
 
-    rows = []
-    for user in list_of_user_profiles_on_bsky:
-        bsky_handle = user.bsky.get('handle')
-        rows.append( f'''
-            <tr>
-                <td> {user.twitter[0].get('username')}</td>
-                <td> <a target="_blank" href="https://staging.bsky.app/profile/{bsky_handle}">🦋{bsky_handle}</a> </td>
-            </tr>
-            '''
-        )
-    rows2 = []
-    rows2.append( f'''
-        <tr>
-            <td> coderobe</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/codero.be">🦋codero.be</a> </td>
-        </tr>
-        '''
-    )
-    rows2.append( f'''
-        <tr>
-            <td> ian5v</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/klatz.co">🦋klatz.co</a> </td>
-        </tr>
-        '''
-    )
-    rows2.append( f'''
-        <tr>
-            <td>lucyluwang</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/lucylw.bsky.social">🦋lucylw.bsky.social</a> </td>
-        </tr>
-        '''
-    )
-    rows2.append( f'''
-        <tr>
-            <td>willscott</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/wills.co.tt">🦋wills.co.tt</a> </td>
-        </tr>
-        '''
-    )
-    rows2.append( f'''
-        <tr>
-            <td> s3krit</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/punk.place">🦋punk.place</a> </td>
-        </tr>
-        '''
-    )
-    rows2.append( f'''
-        <tr>
-            <td> blisstweeting</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/blisstweeting.ingroup.social">🦋blisstweeting.ingroup.social</a> </td>
-        </tr>
-        '''
-    )
-    rows2.append( f'''
-        <tr>
-            <td>RobertHaisfield</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/robhaisfield.com">🦋robhaisfield.com</a> </td>
-        </tr>
-        '''
-    )
-    rows2.append( f'''
-        <tr>
-            <td>mr_ligi</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/ligi.de">🦋ligi.de</a> </td>
-        </tr>
-        '''
-    )
-    rows2.append( f'''
-        <tr>
-            <td>stephengraves</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/stephengraves.bsky.social">🦋stephengraves.bsky.social</a> </td>
-        </tr>
-        '''
-    )
-
 
     # Data received: {list_of_user_profiles_on_bsky}
     return web.Response(text=f"""
     <h4> your friends! (there might not be any.... sorry.....) </h4>
-        <table>
-            <tr>
-                <th>twitter</th>
-                <th>bsky</th>
-            </tr>
-            """ + "\n".join(rows) + "</table><hr>" +
-            """<br> 
-            <h4>guestbook!</h4>
-            <table>
-            <tr>
-                <th>twitter</th>
-                <th>bsky</th>
-            </tr>
-            """ + "\n".join(rows2) + "</table>" +
+    {generate_table_of_users(list_of_user_profiles_on_bsky)}
+    <hr><br> 
+    <h4>guestbook!</h4>
+    {generate_table_of_users(guestbook)}
+    <h3>i want to be added to the guestbook!</h3>
+    <ol>
+        <li>set your twitter bio to include 🦋yourusername.bsky.social</li>
+        <li>put your twitter handle here</li>
+        <li>click the button</li>
+        <li>ian manually adds you when he wakes up</li>
+    </ol>
+    <form action="/testsetup" method="post">
+        <!--
+        <label for="checkbox-id">i want to be added to the guestbook</label>
+        <input type="checkbox" id="checkbox-id" value="checkbox_value">
+        -->
+        <input type="text" name="twitterhandle" placeholder="your twitter" >
+        <input type="text" name="blueskyhandle" placeholder="your bluesky" >
+        <input type="submit" value="add me to the guestbook (so people can find me from this website)">
+        <!--
+        <input type="submit" value="check if this dinky lil' website can read ur twitter">
+        -->
+    </form>
+    <br>
+    <h3> this is a work in progress! please tell me about any bugs by replying to the thread <a target='_blank' href='https://staging.bsky.app/profile/klatz.co/post/3jt6mh7imkv2z'>here!</a>
+    <br><br>
+    <a href='/'>go back</a>
+    """, content_type="text/html")
 
-            '''
-            <h3>i want to be added to the guestbook!</h3>
-            <ol>
-                <li>set your twitter bio to include 🦋yourusername.bsky.social</li>
-                <li>put your twitter handle here</li>
-                <li>click the button</li>
-                <li>ian manually adds you when he wakes up</li>
-            </ol>
-            <form action="/testsetup" method="post">
-                <!--
-                <label for="checkbox-id">i want to be added to the guestbook</label>
-                <input type="checkbox" id="checkbox-id" value="checkbox_value">
-                -->
-                <input type="text" name="twitterhandle" placeholder="your twitter" >
-                <input type="text" name="blueskyhandle" placeholder="your bluesky" >
-                <input type="submit" value="add me to the guestbook (so people can find me from this website)">
-                <!--
-                <input type="submit" value="check if this dinky lil' website can read ur twitter">
-                -->
-            </form> 
-            ''' + 
-
-            "<br> <h3> this is a work in progress! please tell me about any bugs by replying to the thread <a target='_blank' href='https://staging.bsky.app/profile/klatz.co/post/3jt6mh7imkv2z'>here!</a>"
-            "<br><br><a href='/'>go back</a>" 
-    ,content_type="text/html")
 
 async def handle_testsetup(request):
+    global guestbook
     if request.method == 'POST':
         data = await request.post()
-        uu = User()
-        uu.twitter = data.get('twitterhandle')
-        uu.bsky = data.get('blueskyhandle')
-        for c in uu.twitter:
+        twitter_handle = data.get('twitterhandle')
+        bsky_handle = data.get('blueskyhandle')
+        uu = User(
+            TwitterProfile(twitter_handle, ""),
+            BskyProfile(bsky_handle)
+        )
+
+        for c in uu.twitter.username:
             if c not in (ascii_letters + digits + "." + "@"):
                 return web.Response(text="ascii letters + numbers only pls")
-        for c in uu.bsky:
+        for c in uu.bsky.username:
             if c not in (ascii_letters + digits + "." + "@"):
                 return web.Response(text="ascii letters + numbers only pls")
         # username = data.get('twitterhandle').replace("@","")
         # do a selenium
-        resp = requests.post(DISCORD_WEBHOOK_URL, json={'content':uu.twitter + ',' + uu.bsky}, headers={'Content-Type': 'application/json'})
+        resp = requests.post(DISCORD_WEBHOOK_URL, json={
+                             'content': uu.twitter + ',' + uu.bsky}, headers={'Content-Type': 'application/json'})
 
-
-        rows = []
-        list_of_user_profiles_on_bsky = [uu]
-        for user in list_of_user_profiles_on_bsky:
-            bsky_handle = user.bsky
-            rows.append( f'''
-                <tr>
-                    <td> {user.twitter}</td>
-                    <td> <a target="_blank" href="https://staging.bsky.app/profile/{bsky_handle}">🦋{bsky_handle}</a> </td>
-                </tr>
-                '''
-            )
-        rows.append( f'''
-            <tr>
-                <td>arcalinea</td>
-                <td> <a target="_blank" href="https://staging.bsky.app/profile/jay.bsky.social">🦋jay.bsky.social</a> </td>
-            </tr>
-            '''
-        )
-        rows.append( f'''
-            <tr>
-                <td> ian5v</td>
-                <td> <a target="_blank" href="https://staging.bsky.app/profile/klatz.co">🦋klatz.co</a> </td>
-            </tr>
-            '''
-        )
-        rows.append( f'''
-            <tr>
-                <td>mr_ligi</td>
-                <td> <a target="_blank" href="https://staging.bsky.app/profile/ligi.de">🦋ligi.de</a> </td>
-            </tr>
-            '''
-        )
-        rows.append( f'''
-            <tr>
-                <td>stephengraves</td>
-                <td> <a target="_blank" href="https://staging.bsky.app/profile/stephengraves.bsky.social">🦋stephengraves.bsky.social</a> </td>
-            </tr>
-            '''
-        )
-
+        # do we store this somewhere
+        guestbook = [uu] + guestbook
 
         # Data received: {list_of_user_profiles_on_bsky}
         return web.Response(text=f"""
             <h3>guestbook</h3>
-            <table>
-                <tr>
-                    <th>twitter</th>
-                    <th>bsky</th>
-                </tr>
-                """ + "\n".join(rows) + "</table>" +
-                "<a href='/'>go back</a>"
+            {generate_table_of_users(guestbook)}
+            <a href='/'>go back</a>
+            """, content_type="text/html")
 
-        ,content_type="text/html")
-
-        return web.Response(text=f"""
-        yay! <a href="/">go back</a>
-        """
-        ,content_type="text/html")
 
 def main():
     app = web.Application()
     app.add_routes([
-                    web.get('/', handle),
-                    web.post('/', handle),
-                    web.post('/upload', handle_upload),
-                    web.post('/testsetup', handle_testsetup)
-                    ])
+        web.get('/', handle),
+        web.post('/', handle),
+        web.post('/upload', handle_upload),
+        web.post('/testsetup', handle_testsetup)
+    ])
     web.run_app(app)
+
 
 # test_get_bsky_username()
 if __name__ == "__main__":
