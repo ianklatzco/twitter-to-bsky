@@ -144,11 +144,7 @@ def get_bsky_username(instr) -> str:
 
 
 # -> List[User]
-def process_json(input_json: str | None = None) -> List[User]:
-    sample = '''[[{"id":"33333","name":"foouserdisplayname","username":"ian5v","created_at":"2015-01-24T20:50:17Z","description":"bsky:klatz.co","entities":{},"location":"usa","pinned_tweet_id":"33333","profile_image_url":"foo","protected":false,"url":"lol"},{"id":"3333","text":"pinned tweet text content","entities":{}}]]'''
-    if input_json == None:
-        input_json = sample
-
+def process_json(input_json: str) -> List[User]:
     eee = json.loads(input_json)
     returnlist: List[User] = []
     for person_youre_following in eee:
