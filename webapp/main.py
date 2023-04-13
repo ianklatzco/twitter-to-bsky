@@ -66,26 +66,28 @@ class User():
 
 
 guestbook: List[User] = [
-    User(TwitterProfile('arcalinea', 'arcalinea'),
-         BskyProfile('jay.bsky.social')),
-    User(TwitterProfile('coderobe', 'coderobe'),
+    User(TwitterProfile('arcalinea', 'Jay Graber'),
+         BskyProfile('jay.bsky.team')),
+    User(TwitterProfile('coderobe', 'Mara 🕊️'),
          BskyProfile('codero.be')),
-    User(TwitterProfile('ian5v', 'ian5v'),
+    User(TwitterProfile('ian5v', 'Ian Klatzco'),
          BskyProfile('klatz.co')),
-    User(TwitterProfile('lucyluwang', 'lucyluwang'),
+    User(TwitterProfile('lucyluwang', 'Lucy Lu Wang'),
          BskyProfile('lucylw.bsky.social')),
     User(TwitterProfile('willscott', 'willscott'),
          BskyProfile('wills.co.tt')),
     User(TwitterProfile('s3krit', 's3krit'),
          BskyProfile('punk.place')),
-    User(TwitterProfile('blisstweeting', 'blisstweeting'),
+    User(TwitterProfile('blisstweeting', 'Phil'),
          BskyProfile('blisstweeting.ingroup.social')),
-    User(TwitterProfile('RobertHaisfield', 'RobertHaisfield'),
+    User(TwitterProfile('RobertHaisfield', 'Rob Haisfield'),
          BskyProfile('robhaisfield.com')),
-    User(TwitterProfile('mr_ligi', 'mr_ligi'),
+    User(TwitterProfile('mr_ligi', 'ligi ☮️🌍🚲🌳🍵🎶🌶🔥🖖'),
          BskyProfile('ligi.de')),
-    User(TwitterProfile('stephengraves', 'stephengraves'),
+    User(TwitterProfile('stephengraves', 'stephengraves.eth'),
          BskyProfile('stephengraves.bsky.social')),
+    User(TwitterProfile('H_H_H_H_H_H_H_7', '𝙝⁷ | 하세 🏳️‍⚧️'),
+         BskyProfile('heartade.bsky.social')),
 ]
 
 
@@ -280,16 +282,19 @@ def generate_rows_of_users(list_of_user_profiles_on_bsky: List[User]) -> str:
     return "\n".join(
         map(lambda user: f'''
         <tr>
-            <td> <a target="_blank" href="https://twitter.com/{user.twitter.username}">{user.twitter.displayname}</a>({user.twitter.username})</td>
-            <td> <a target="_blank" href="https://staging.bsky.app/profile/{user.bsky.username}">🦋{user.bsky.username}</a></td>
+            <td>{user.twitter.displayname}</td>
+            <td><a target="_blank" href="https://twitter.com/{user.twitter.username}">@{user.twitter.username}</td>
+            <td><a target="_blank" href="https://staging.bsky.app/profile/{user.bsky.username}">🦋{user.bsky.username}</a></td>
         </tr>
     ''', list_of_user_profiles_on_bsky)
     )
+
 
 def generate_table_of_users(list_of_user_profiles_on_bsky: List[User]) -> str:
     return f'''
     <table>
         <tr>
+            <th>name</th>
             <th>twitter</th>
             <th>bsky</th>
         </tr>
@@ -317,7 +322,6 @@ async def handle_upload(request):
     ccc = ccc.decode('utf8')
     list_of_user_profiles_on_bsky = process_json(ccc)
     # return web.Response(text=f'{filename} uploaded successfully')
-
 
     # Data received: {list_of_user_profiles_on_bsky}
     return web.Response(text=f"""
