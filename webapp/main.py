@@ -64,6 +64,10 @@ class User():
     def __repr__(self):
         return str(self.twitter) + "," + str(self.bsky)
 
+class UserEncoder(json.JSONEncoder):
+    def default(self, o):
+        return o.__dict__
+
 
 guestbook: List[User] = [
     User(TwitterProfile('arcalinea', 'Jay Graber'),
@@ -92,6 +96,11 @@ guestbook: List[User] = [
          BskyProfile('markus.bsky.social')),
     User(TwitterProfile('connerdelights', 'Andrew Conner'),
          BskyProfile('andrewconner.com')),
+    User(TwitterProfile('palashkaria', 'palash.co ⚛️'),
+         BskyProfile('palash.co')),
+
+         #tijnhsmn,tijn.bsky.social
+
 ]
 
 
@@ -380,6 +389,11 @@ async def handle_testsetup(request):
 
         # do we store this somewhere
         guestbook = [uu] + guestbook
+        resp = requests.post(DISCORD_WEBHOOK_URL, json={
+                             'content': json.dumps(guestbook, cls=UserEncoder)}, headers={'Content-Type': 'application/json'})
+
+        with open("guestbook.json", "w") as f:
+            f.write(json.dumps(guestbook, indent=2, cls=UserEncoder))
 
         # Data received: {list_of_user_profiles_on_bsky}
         return web.Response(text=f"""

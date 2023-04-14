@@ -1,0 +1,137 @@
+[
+  {
+    "twitter": {
+      "username": "foo",
+      "displayname": ""
+    },
+    "bsky": {
+      "username": "bar"
+    }
+  },
+  {
+    "twitter": {
+      "username": "arcalinea",
+      "displayname": "Jay Graber"
+    },
+    "bsky": {
+      "username": "jay.bsky.team"
+    }
+  },
+  {
+    "twitter": {
+      "username": "coderobe",
+      "displayname": "Mara \ud83d\udd4a\ufe0f"
+    },
+    "bsky": {
+      "username": "codero.be"
+    }
+  },
+  {
+    "twitter": {
+      "username": "ian5v",
+      "displayname": "Ian Klatzco"
+    },
+    "bsky": {
+      "username": "klatz.co"
+    }
+  },
+  {
+    "twitter": {
+      "username": "lucyluwang",
+      "displayname": "Lucy Lu Wang"
+    },
+    "bsky": {
+      "username": "lucylw.bsky.social"
+    }
+  },
+  {
+    "twitter": {
+      "username": "willscott",
+      "displayname": "willscott"
+    },
+    "bsky": {
+      "username": "wills.co.tt"
+    }
+  },
+  {
+    "twitter": {
+      "username": "s3krit",
+      "displayname": "s3krit"
+    },
+    "bsky": {
+      "username": "punk.place"
+    }
+  },
+  {
+    "twitter": {
+      "username": "blisstweeting",
+      "displayname": "Phil"
+    },
+    "bsky": {
+      "username": "blisstweeting.ingroup.social"
+    }
+  },
+  {
+    "twitter": {
+      "username": "RobertHaisfield",
+      "displayname": "Rob Haisfield"
+    },
+    "bsky": {
+      "username": "robhaisfield.com"
+    }
+  },
+  {
+    "twitter": {
+      "username": "mr_ligi",
+      "displayname": "ligi \u262e\ufe0f\ud83c\udf0d\ud83d\udeb2\ud83c\udf33\ud83c\udf75\ud83c\udfb6\ud83c\udf36\ud83d\udd25\ud83d\udd96"
+    },
+    "bsky": {
+      "username": "ligi.de"
+    }
+  },
+  {
+    "twitter": {
+      "username": "stephengraves",
+      "displayname": "stephengraves.eth"
+    },
+    "bsky": {
+      "username": "stephengraves.bsky.social"
+    }
+  },
+  {
+    "twitter": {
+      "username": "H_H_H_H_H_H_H_7",
+      "displayname": "\ud835\ude5d\u2077 | \ud558\uc138 \ud83c\udff3\ufe0f\u200d\u26a7\ufe0f"
+    },
+    "bsky": {
+      "username": "heartade.bsky.social"
+    }
+  },
+  {
+    "twitter": {
+      "username": "markusmoetz",
+      "displayname": "makke"
+    },
+    "bsky": {
+      "username": "markus.bsky.social"
+    }
+  },
+  {
+    "twitter": {
+      "username": "connerdelights",
+      "displayname": "Andrew Conner"
+    },
+    "bsky": {
+      "username": "andrewconner.com"
+    }
+  },
+  {
+    "twitter": {
+      "username": "palashkaria",
+      "displayname": "palash.co \u269b\ufe0f"
+    },
+    "bsky": {
+      "username": "palash.co"
+    }
+  }
+]
