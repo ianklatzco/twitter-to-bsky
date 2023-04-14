@@ -256,9 +256,13 @@ async def handle(request):
                         <li>upload following.json</li>
                     </ol>
                     <form action="/upload" method="post" enctype="multipart/form-data">
-                        <input type="file" name="file">
+                        <input type="file" name="file" accept=".json">
                         <input type="submit" value="get your twitter friends' bsky handles">
                     </form>
+
+                    <!-- var e = document.querySelector("body > form > input[type=file]:nth-child(1)") -->
+                    <!-- e.files[0] -->
+                    <!-- on submit click, pop alert box if != following.json -->
 
                     <br><br><br><br>
                     <br><br><br><br>
