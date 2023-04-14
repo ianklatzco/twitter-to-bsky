@@ -248,6 +248,7 @@ async def handle(request):
                     <h3>(wip) website 2 follow ur twitter friends on bsky🦋</h3>
 
                     <ol>
+                        <li>put 🦋yourusername.bsky.social in your twitter bio</li>
                         <li>get the JSON export of the people you follow from 
                             <a href="https://unflwrs.syfaro.com/">https://unflwrs.syfaro.com/</a>
                         </li>
