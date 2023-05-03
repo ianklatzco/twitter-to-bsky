@@ -158,13 +158,13 @@ def process_json(input_json: str) -> List[User]:
         # 1. check the handle to see if they just registered twitterhandle.bsky.social
         # 2.
 
-        bio_full_json = person_youre_following[0]
-        pinned = person_youre_following[1]
+        user_json = person_youre_following
+        user_json_legacy = user_json.get("legacy")
 
-        displayname = bio_full_json.get('name')
-        username = bio_full_json.get('username')
-        description = bio_full_json.get('description')
-        entities = bio_full_json.get("entities")
+        displayname = user_json_legacy.get('name')
+        username = user_json_legacy.get('screen_name')
+        description = user_json_legacy.get('description')
+        entities = user_json_legacy.get("entities")
 
         if not description:
             continue
