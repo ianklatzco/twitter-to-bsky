@@ -20,6 +20,7 @@ import atprototools
 import requests
 import datetime
 import os
+from parse_json import parse_json
 from string import ascii_letters, digits
 from typing import List
 
@@ -145,92 +146,17 @@ def get_bsky_username(instr) -> str:
 
 # -> List[User]
 def process_json(input_json: str) -> List[User]:
-    eee = json.loads(input_json)
+    candidates = parse_json(input_json)
     returnlist: List[User] = []
-    for person_youre_following in eee:
-        bsky_username = None
-        # if person_youre_following[0].get("username") != "ian5v":
-        #     continue
-        # import sys; sys.exit()
-
-        # print(json.dumps(person_youre_following[0]))
-
-        # 1. check the handle to see if they just registered twitterhandle.bsky.social
-        # 2.
-
-        user_json = person_youre_following
-        user_json_legacy = user_json.get("legacy")
-
-        displayname = user_json_legacy.get('name')
-        username = user_json_legacy.get('screen_name')
-        description = user_json_legacy.get('description')
-        entities = user_json_legacy.get("entities")
-
-        if not description:
-            continue
-        if not entities:
-            continue
-        if not entities.get('description'):
-            continue
-
-        if "🦋" not in description:
-            continue
-
-        print(username)
-
-        # handles that are valid website (probably all of them) will get url shortened
-        # entities -> description -> urls
-        # entities -> url -> urls
-
-        desc_urls = entities.get('description').get('urls')
-        if not desc_urls or len(desc_urls) == 0:
-            continue
-
-        # only one link in desc
-        elif len(desc_urls) == 1:
-            bsky_username = desc_urls[0].get('expanded_url')
-
-        # 2+ links in desc
-        elif len(desc_urls) >= 2:
-            print(username)  # twitter username
-            bfly_index = description.index("🦋")
-            for url_entity in desc_urls:
-                start = url_entity.get('start')
-                # bfly_index + 1 or + 2 where the url/handle starts
-                if start in range(bfly_index + 1, bfly_index + 3):
-                    bsky_username = url_entity.get('display_url')
-
-        if bsky_username == None:
-            continue
-
-        bsky_username = bsky_username.replace(
-            "http://", "").replace("https://", "")
-        print(bsky_username)
-
-        # bsky_username = get_bsky_username(description) # from bio
-
-        print('got here')
-        # TODO I get 'atprototools' has no attribute 'Session' error. Perhaps it's a new feature and not yet live on PIP
-        # session = atprototools.Session(os.environ.get(
-        #     "BSKY_USERNAME"), os.environ.get("BSKY_PASSWORD"))
-        # bsky_did = session.resolveHandle(bsky_username).json().get('did')
-        # profile_json = session.getProfile(bsky_did).json()
-
-        # RESUME now i have the json containing profile content; parse it and render the bsky profile in html (just a link to the profile is fine to start)
-
-        returnlist.append(
-            User(
-                TwitterProfile(
-                    username, displayname
-                ), BskyProfile(
-                    bsky_username
+    for candidate in candidates:
+        for candidate_handle in candidate.bsky_handle_candidate:
+            returnlist.append(
+                User(
+                    TwitterProfile(candidate.name, candidate.screen_name),
+                    BskyProfile(candidate_handle)
                 )
             )
-        )
-        # TODO check pinned tweet
-        # import pdb; pdb.set_trace()
     return returnlist
-
 
 async def handle(request):
     if request.method == 'GET':
