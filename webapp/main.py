@@ -174,12 +174,11 @@ async def handle(request):
                     <h3>(wip) website 2 follow ur twitter friends on bsky🦋</h3>
 
                     <ol>
-                        <li>put 🦋yourusername.bsky.social in your twitter bio</li>
-                        <li>get the JSON export of the people you follow from 
-                            <a href="https://unflwrs.syfaro.com/">https://unflwrs.syfaro.com/</a>
+                        <li>put 🦋your.bsky.handle in your twitter bio</li>
+                        <li>get the JSON export of the people you follow using 
+                            <a href="https://github.com/Heartade/get-bird-follows">get-bird-follows userscript</a>
                         </li>
-                        <li>unzip following.json somewhere</li>
-                        <li>upload following.json</li>
+                        <li>upload (your_twitter_handle).json</li>
                     </ol>
                     <form action="/upload" method="post" enctype="multipart/form-data">
                         <input type="file" name="file" accept=".json">
