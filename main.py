@@ -1,52 +1,97 @@
-import json, datetime, time, os
+import json, datetime, time, os, html, re
 
-import atprototools as atpt
+import atprototools
 # import sys; sys.path = ['/home/user/atprototools'] + sys.path # dev hack to import the local
 
 TWEETS_JS_PATH = "./data/tweets.js"
+DATA_PATH = "./data"
 
 USERNAME = os.environ.get("BSKY_USERNAME")
 PASSWORD = os.environ.get("PASSWORD")
 
-
+print("Opening tweets json...")
 f = open(TWEETS_JS_PATH)
 c = f.read().replace("window.YTD.tweets.part0 = ", "")
-tweets = json.loads(c)
+twitter_data_date_format = "%a %b %d %H:%M:%S %z %Y"
+tweets = sorted(json.loads(c), key=lambda x: datetime.datetime.strptime(x['tweet']['created_at'], twitter_data_date_format))
 
 def upload_old_tweets():
-    print(str(len(tweets)) + "tweets to skootify")
+    global atsession
+    print(str(len(tweets)) + "tweets to blootify")
     for index, tweet in enumerate(tweets):
         tweet = tweet.get("tweet")
-        skoot_text = tweet.get("full_text")
-
-        if tweet.get("retweeted") == True: continue
-        if skoot_text[0:4] == "RT @": continue
-        if skoot_text[0] == "@": continue # don't skoot mentions or replies
-        
+        tweet_media_path = None
+        bloot_text = html.unescape(tweet.get("full_text"))
         date_string = tweet.get("created_at")
-        date_format = "%a %b %d %H:%M:%S %z %Y"
-        parsed_date = datetime.datetime.strptime(date_string, date_format)
+        parsed_date = datetime.datetime.strptime(date_string, twitter_data_date_format)
         assert(str(type(parsed_date)) == "<class 'datetime.datetime'>")
-        atpt.post_skoot(skoot_text, parsed_date)
-        print("{} of {} at {} skooted {}".format(index, len(tweets), parsed_date, skoot_text))
-        time.sleep(.1)
 
-def get_skoot_text_from_feed(skoot):
-    return skoot.get('feed')[0].get('post').get('record').get('text')
+        print("{:05}/{:05} {} from {} is:\n\t{}".format(index+1, len(tweets), tweet.get("id"), parsed_date, bloot_text))
+
+        if tweet.get("retweeted") == True:
+            print("\t⏭️ Retweeting doesn't make sense, skipping")
+            continue
+        if bloot_text[0:4] == "RT @":
+            print("\t⏭️ Retweeting doesn't make sense, skipping")
+            continue
+        if bloot_text[0] == "@":
+            print("\t⏭️ Mentions or replies don't make sense, skipping")
+            continue
+        if tweet.get("entities").get("media") != None:
+            if len(tweet.get("entities").get("media")) == 1:
+                print("\t🖼️ Contains media")
+                media_metadata = tweet.get("entities").get("media")[0]
+                bloot_text = re.sub((" ?" + re.escape(media_metadata.get("url"))), "", bloot_text)
+                print("\t\tUpdated text = {}".format(bloot_text))
+                tweet_media_path = "{0}/tweets_media/{1}-{2}".format(DATA_PATH, tweet.get("id"), str(media_metadata.get("media_url")).split("/")[-1])
+                print("\t\tImage path to upload = {}".format(tweet_media_path))
+            else:
+                print("⏭️ Multiple photos not implemented (ToDo), skipping")
+                continue
+        if tweet.get("entities").get("urls") != None and len(tweet.get("entities").get("urls")) > 0:
+            print("\t🔗 Contains {} url(s)".format(len(tweet.get("entities").get("urls"))))
+            urls = tweet.get("entities").get("urls")
+            for url_index, url in enumerate(urls):
+                if "x.com" in str(url.get("expanded_url")):
+                    old_id = str(url.get("expanded_url").split("/")[-1])
+                    old_tweet = [x for x in tweets if x['tweet']['id'] == old_id]
+                    if old_tweet != None:
+                        print("\t\t📯 {}/{} Contains own tweet url".format(url_index+1, len(tweet.get("entities").get("urls"))))
+                        bloot_text = bloot_text.replace(url.get("url"), "\n\nRT {0}: {1}".format(USERNAME, old_tweet[0].get('tweet').get('full_text')))
+                    else:
+                        print("\t\t📯 {}/{} Contains foreign tweet url".format(url_index+1, len(tweet.get("entities").get("urls"))))
+                        bloot_text = bloot_text.replace(url.get("url"), url.get("expanded_url"))
+                else:
+                    print("\t\t🔗 {}/{} Contains url".format(url_index+1, len(tweet.get("entities").get("urls"))))
+                    bloot_text = bloot_text.replace(url.get("url"), url.get("expanded_url"))
+            print("\tUpdated text = {}".format(bloot_text))
+        
+        atsession.postBloot(postcontent=bloot_text, image_path=tweet_media_path, timestamp=parsed_date)
+        print("\t\t📤✅ blooted")
+        time.sleep(.05)
+
+def get_bloot_text_from_feed(bloot):
+    return bloot.get('feed')[0].get('post').get('record').get('text')
 
 def wipe_profile():
-    testpost_question_mark = atpt.get_latest_skoot(USERNAME)
-    text = testpost_question_mark.json().get('feed')[0].get('post').get('record').get('text')
+    global atsession
+    print("Getting latest bloot...")
+    latest_post = atsession.getLatestBloot(accountname=USERNAME)
+    did_transformed = atsession.DID.split(":")[-1]
+    print("DID = {}...".format(did_transformed[:4]))
 
-    while (text != "testpoast"):
-        skoot = atpt.get_latest_skoot(USERNAME).json()
-        text = get_skoot_text_from_feed(skoot)
-        if (text == "testpoast"): continue
-        rkey = skoot.get('feed')[0].get('post').get('uri').split('/')[-1]
-        print("attempting to delete {}".format(text))
-        resp = atpt.delete_skoot(atpt.DID, rkey)
+    while ( latest_post.ok and latest_post.json().get('feed') != None and len(latest_post.json().get('feed')) == 1):
+        id = latest_post.json().get('feed')[0].get('post').get('uri').split('/')[-1]
+        text = get_bloot_text_from_feed(latest_post.json())
+        print("attempting to delete {} with text {}".format(id, text)) 
+        resp = atsession.deleteBloot(did=did_transformed, rkey=id)
         print(resp)
-        # import pdb; pdb.set_trace()
+
+        print("Getting latest bloot...")
+        latest_post = atsession.getLatestBloot(accountname=USERNAME)
+
+    print("No more bloots to delete")
+
 
 def warning():
     response = ""
@@ -61,10 +106,9 @@ def warning():
         print("Exiting....")
         import sys; sys.exit()
  
-def main():
-    warning()
-    atpt.login(USERNAME, PASSWORD)
-    # wipe_profile()
-    upload_old_tweets()
 
-main()
+warning()
+print("Logging in...")
+atsession = atprototools.Session(username=USERNAME, password=PASSWORD)
+#wipe_profile()
+upload_old_tweets()
