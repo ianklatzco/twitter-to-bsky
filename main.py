@@ -9,7 +9,7 @@ USERNAME = os.environ.get("BSKY_USERNAME")
 PASSWORD = os.environ.get("PASSWORD")
 
 
-f = open(TWEETS_JS_PATH)
+f = open(TWEETS_JS_PATH, encoding="utf8")
 c = f.read().replace("window.YTD.tweets.part0 = ", "")
 tweets = json.loads(c)
 
