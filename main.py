@@ -10,7 +10,7 @@ USERNAME = os.environ.get("BSKY_USERNAME")
 PASSWORD = os.environ.get("PASSWORD")
 
 print("Opening tweets json...")
-f = open(TWEETS_JS_PATH)
+f = open(TWEETS_JS_PATH, encoding="utf8")
 c = f.read().replace("window.YTD.tweets.part0 = ", "")
 twitter_data_date_format = "%a %b %d %H:%M:%S %z %Y"
 tweets = sorted(json.loads(c), key=lambda x: datetime.datetime.strptime(x['tweet']['created_at'], twitter_data_date_format))
