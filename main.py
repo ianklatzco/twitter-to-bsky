@@ -55,7 +55,7 @@ def upload_old_tweets():
                 if "x.com" in str(url.get("expanded_url")):
                     old_id = str(url.get("expanded_url").split("/")[-1])
                     old_tweet = [x for x in tweets if x['tweet']['id'] == old_id]
-                    if old_tweet != None:
+                    if old_tweet:
                         print("\t\t📯 {}/{} Contains own tweet url".format(url_index+1, len(tweet.get("entities").get("urls"))))
                         bloot_text = bloot_text.replace(url.get("url"), "\n\nRT {0}: {1}".format(USERNAME, old_tweet[0].get('tweet').get('full_text')))
                     else:
